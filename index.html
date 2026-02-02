@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>智慧冰箱倉儲系統 - 行動優化版</title>
+    <title>智慧冰箱 - 行動優化終極版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
@@ -17,139 +17,131 @@
         .hidden { display: none; }
         .tab-active { background-color: #2563eb !important; color: white !important; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.4); }
 
-        /* 手機版 RWD 卡片化設計 */
+        /* 手機 RWD 排版核心 */
         @media (max-width: 768px) {
-            thead { display: none; } /* 隱藏表頭 */
-            
+            thead { display: none; }
             #inventoryList tr {
                 display: block;
-                margin-bottom: 1.25rem;
+                margin-bottom: 1rem;
                 background: white;
                 border-radius: 16px;
-                padding: 12px;
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                padding: 8px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
                 border: 1px solid #e2e8f0;
             }
-
             #inventoryList td {
                 display: flex;
                 justify-content: space-between;
-                align-items: center;
-                padding: 10px 8px;
+                align-items: flex-start;
+                padding: 8px;
                 border: none;
-                text-align: right;
             }
-
-            /* 手機版欄位標籤 */
             #inventoryList td::before {
                 content: attr(data-label);
                 font-weight: 700;
                 color: #94a3b8;
-                font-size: 0.8rem;
+                font-size: 0.75rem;
+                margin-top: 4px;
                 flex-shrink: 0;
+                width: 70px; /* 固定寬度讓標籤對齊 */
+                text-align: left;
             }
-
+            /* 食材名稱專屬：自動斷行 */
+            #inventoryList td[data-label="內容"] {
+                flex-direction: row;
+                text-align: right;
+                word-break: break-all;
+            }
+            #inventoryList td[data-label="內容"] > div {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end;
+                width: 100%;
+            }
             #inventoryList td:last-child {
-                border-top: 1px dashed #e2e8f0;
-                margin-top: 8px;
-                padding-top: 15px;
+                border-top: 1px dashed #f1f5f9;
+                margin-top: 4px;
+                padding-top: 12px;
                 justify-content: center;
             }
-            
-            /* 讓按鈕在手機上更大更好按 */
-            .btn-action {
-                width: 100%;
-                padding: 12px;
-                font-size: 1rem;
-            }
+            .btn-action { width: 100%; padding: 10px; }
         }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-3 md:p-8">
     <div class="max-w-5xl mx-auto">
+        <header id="mainHeader" class="hidden mb-6 flex justify-between items-end">
+            <div>
+                <h1 class="text-xl font-bold text-slate-800">我的智慧冰箱 🧊</h1>
+                <p class="text-slate-500 text-xs">User: <span id="userNameDisplay" class="text-blue-600"></span></p>
+            </div>
+            <button id="btnLogout" class="text-xs text-slate-400 bg-white px-3 py-1 rounded-full border shadow-sm">登出</button>
+        </header>
+
         <div id="loginSection" class="text-center py-20 bg-white rounded-3xl shadow-xl border border-slate-100">
-            <div class="text-6xl mb-6">❄️</div>
-            <h1 class="text-3xl font-bold text-slate-800 mb-2">智慧冰箱倉儲</h1>
-            <p class="text-slate-500 mb-10">雲端同步 · 食材管理 · 過期提醒</p>
-            <button id="btnLogin" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-10 rounded-2xl transition-all active:scale-95 shadow-lg shadow-blue-200">
-                使用 Google 帳號登入
-            </button>
+            <div class="text-5xl mb-4">❄️</div>
+            <h1 class="text-2xl font-bold text-slate-800 mb-6">智慧冰箱管理</h1>
+            <button id="btnLogin" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-2xl shadow-lg">使用 Google 登入</button>
         </div>
 
         <div id="mainApp" class="hidden">
-            <header class="mb-8 flex justify-between items-end">
-                <div>
-                    <h1 class="text-2xl font-bold text-slate-800">我的智慧冰箱 🧊</h1>
-                    <p class="text-slate-500 text-sm">Hi, <span id="userNameDisplay" class="font-bold text-blue-600"></span></p>
-                </div>
-                <button id="btnLogout" class="text-xs text-slate-400 bg-slate-100 px-3 py-1 rounded-full hover:bg-red-50 hover:text-red-500 transition">登出</button>
-            </header>
-
-            <div class="bg-white rounded-2xl shadow-sm p-5 mb-6 border border-slate-100">
-                <h2 class="text-lg font-bold mb-4 text-slate-700 flex items-center gap-2">
-                    <span class="bg-blue-100 p-1 rounded-md text-sm">➕</span> 快速新增食材
-                </h2>
-                <form id="foodForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+            <div class="bg-white rounded-2xl shadow-sm p-4 mb-6 border border-slate-100">
+                <form id="foodForm" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3">
                     <div class="flex flex-col lg:col-span-2">
-                        <label class="text-xs font-bold text-slate-400 mb-1 ml-1">食材名稱 / 數量</label>
-                        <div class="flex gap-2">
-                            <input type="text" id="foodName" placeholder="例如：鮮乳" required class="flex-1 border border-slate-200 bg-slate-50 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
-                            <input type="text" id="foodQty" placeholder="1 瓶" required class="w-24 border border-slate-200 bg-slate-50 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                        <label class="text-xs font-bold text-slate-400 mb-1 ml-1">食材名稱與數量</label>
+                        <div class="flex flex-col md:flex-row gap-2">
+                            <input type="text" id="foodName" placeholder="名稱 (例如: 高鮮乳)" required class="flex-1 border border-slate-200 bg-slate-50 rounded-xl p-3 outline-none focus:bg-white transition">
+                            <input type="text" id="foodQty" placeholder="數量" required class="w-full md:w-24 border border-slate-200 bg-slate-50 rounded-xl p-3 outline-none focus:bg-white transition">
                         </div>
                     </div>
                     <div class="flex flex-col">
                         <label class="text-xs font-bold text-slate-400 mb-1 ml-1">儲存位置</label>
-                        <select id="foodLocation" class="border border-slate-200 bg-slate-50 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
-                            <option value="fridge">冷藏庫 (Chilled)</option>
-                            <option value="freezer">冷凍庫 (Frozen)</option>
+                        <select id="foodLocation" class="border border-slate-200 bg-slate-50 rounded-xl p-3 outline-none focus:bg-white">
+                            <option value="fridge">冷藏庫</option>
+                            <option value="freezer">冷凍庫</option>
                         </select>
                     </div>
-                    <div class="flex flex-col">
-                        <label class="text-xs font-bold text-slate-400 mb-1 ml-1">放入日期</label>
-                        <input type="date" id="addedDate" required class="border border-slate-200 bg-slate-50 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                    <div class="flex flex-col text-xs">
+                        <label class="font-bold text-slate-400 mb-1 ml-1">放入日期</label>
+                        <input type="date" id="addedDate" required class="border border-slate-200 bg-slate-50 rounded-xl p-2 outline-none">
                     </div>
-                    <div class="flex flex-col">
-                        <label class="text-xs font-bold text-slate-400 mb-1 ml-1">保存期限</label>
-                        <input type="date" id="expiryDate" required class="border border-slate-200 bg-slate-50 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                    <div class="flex flex-col text-xs">
+                        <label class="font-bold text-slate-400 mb-1 ml-1">保存期限</label>
+                        <input type="date" id="expiryDate" required class="border border-slate-200 bg-slate-50 rounded-xl p-2 outline-none">
                     </div>
                     <div class="flex items-end">
-                        <button type="submit" class="w-full bg-slate-800 hover:bg-black text-white font-bold py-3.5 rounded-xl transition active:scale-95 shadow-md">加入清單</button>
+                        <button type="submit" class="w-full bg-slate-800 text-white font-bold py-3 rounded-xl active:scale-95 transition">加入</button>
                     </div>
                 </form>
             </div>
 
-            <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
+            <div class="flex flex-col md:flex-row gap-3 mb-4">
                 <div class="flex bg-white rounded-xl p-1 shadow-sm border border-slate-100 w-full md:w-auto" id="filterTabs">
-                    <button onclick="window.filterBy('all')" id="btn-all" class="flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold tab-active transition">全部</button>
-                    <button onclick="window.filterBy('fridge')" id="btn-fridge" class="flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold transition">冷藏</button>
-                    <button onclick="window.filterBy('freezer')" id="btn-freezer" class="flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold transition">冷凍</button>
+                    <button onclick="window.filterBy('all')" id="btn-all" class="flex-1 px-4 py-2 rounded-lg text-sm font-bold tab-active">全部</button>
+                    <button onclick="window.filterBy('fridge')" id="btn-fridge" class="flex-1 px-4 py-2 rounded-lg text-sm font-bold">冷藏</button>
+                    <button onclick="window.filterBy('freezer')" id="btn-freezer" class="flex-1 px-4 py-2 rounded-lg text-sm font-bold">冷凍</button>
                 </div>
-                <div class="flex items-center gap-2 w-full md:w-auto">
-                    <select id="sortSelect" onchange="window.sortBy(this.value)" class="w-full border border-slate-200 bg-white rounded-xl p-2.5 text-sm font-medium outline-none shadow-sm">
-                        <option value="expiryDate">⏳ 按到期日 (最近優先)</option>
-                        <option value="addedDate">📅 按放入日 (最新優先)</option>
-                        <option value="name">🔤 按名稱 (A-Z)</option>
-                    </select>
-                </div>
+                <select id="sortSelect" onchange="window.sortBy(this.value)" class="flex-1 md:flex-none border border-slate-200 bg-white rounded-xl p-2 text-sm outline-none">
+                    <option value="expiryDate">⏳ 依到期日</option>
+                    <option value="addedDate">📅 依放入日</option>
+                    <option value="name">🔤 依名稱</option>
+                </select>
             </div>
 
             <div class="overflow-hidden">
-                <table class="w-full text-left border-separate border-spacing-y-0">
-                    <thead>
-                        <tr class="text-slate-400 uppercase text-xs font-bold tracking-wider">
-                            <th class="py-4 px-6">內容</th>
-                            <th class="py-4 px-6">數量</th>
-                            <th class="py-4 px-6 text-center">狀態</th>
-                            <th class="py-4 px-6">日期</th>
-                            <th class="py-4 px-6 text-center">操作</th>
+                <table class="w-full text-left">
+                    <thead class="text-slate-400 text-xs font-bold uppercase">
+                        <tr>
+                            <th class="py-3 px-4">內容</th>
+                            <th class="py-3 px-4">數量</th>
+                            <th class="py-3 px-4 text-center">狀態</th>
+                            <th class="py-3 px-4">日期</th>
+                            <th class="py-3 px-4 text-center">操作</th>
                         </tr>
                     </thead>
-                    <tbody id="inventoryList" class="text-slate-600"></tbody>
+                    <tbody id="inventoryList" class="text-slate-600 text-sm"></tbody>
                 </table>
-                <div id="emptyState" class="py-20 text-center bg-white rounded-3xl border border-dashed border-slate-300 text-slate-400 hidden">
-                    <div class="text-4xl mb-2">🍃</div>
-                    這裡空空如也...
-                </div>
+                <div id="emptyState" class="py-10 text-center text-slate-400 hidden">目前沒有食材</div>
             </div>
         </div>
     </div>
@@ -159,7 +151,6 @@
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // 這裡貼上你的 Firebase Config (已帶入你之前的設定)
         const firebaseConfig = {
             apiKey: "AIzaSyCbYzfYlzmDZ9ETC16a5VGhpNd_BqXRsiE",
             authDomain: "refrigerator-80650.firebaseapp.com",
@@ -182,11 +173,13 @@
             if (user) {
                 document.getElementById('loginSection').classList.add('hidden');
                 document.getElementById('mainApp').classList.remove('hidden');
+                document.getElementById('mainHeader').classList.remove('hidden');
                 document.getElementById('userNameDisplay').innerText = user.displayName;
                 refreshData();
             } else {
                 document.getElementById('loginSection').classList.remove('hidden');
                 document.getElementById('mainApp').classList.add('hidden');
+                document.getElementById('mainHeader').classList.add('hidden');
                 if (unsubscribe) unsubscribe();
             }
         });
@@ -195,11 +188,7 @@
             if (unsubscribe) unsubscribe();
             let q;
             const colRef = collection(db, "fridgeInventory");
-            if (currentFilter === 'all') {
-                q = query(colRef, orderBy(currentSort, "asc"));
-            } else {
-                q = query(colRef, where("location", "==", currentFilter), orderBy(currentSort, "asc"));
-            }
+            q = (currentFilter === 'all') ? query(colRef, orderBy(currentSort, "asc")) : query(colRef, where("location", "==", currentFilter), orderBy(currentSort, "asc"));
 
             unsubscribe = onSnapshot(q, (snapshot) => {
                 const list = document.getElementById('inventoryList');
@@ -209,27 +198,29 @@
                 snapshot.forEach((docSnap) => {
                     const item = docSnap.data();
                     const status = calculateStatus(item.expiryDate);
-                    const locTag = item.location === 'freezer' ? 
-                        '<span class="bg-indigo-100 text-indigo-600 text-[10px] font-bold px-2 py-0.5 rounded-lg mr-2">冷凍</span>' : 
-                        '<span class="bg-cyan-100 text-cyan-600 text-[10px] font-bold px-2 py-0.5 rounded-lg mr-2">冷藏</span>';
+                    const locTag = item.location === 'freezer' ? '<span class="bg-indigo-100 text-indigo-600 text-[10px] px-2 py-0.5 rounded-md mb-1 inline-block">冷凍</span>' : '<span class="bg-cyan-100 text-cyan-600 text-[10px] px-2 py-0.5 rounded-md mb-1 inline-block">冷藏</span>';
 
                     const row = document.createElement('tr');
                     row.className = `md:border-b border-slate-100 transition-all ${status.class}`;
                     row.innerHTML = `
-                        <td class="py-4 px-6 font-bold text-slate-800" data-label="食材位置">${locTag}${item.name}</td>
-                        <td class="py-4 px-6" data-label="剩餘數量">${item.qty}</td>
-                        <td class="py-4 px-6 text-center" data-label="新鮮狀態">
-                            <span class="px-3 py-1 rounded-full text-[11px] font-black tracking-tighter ${status.urgent ? 'bg-red-500 text-white animate-pulse' : 'bg-slate-100 text-slate-500'}">
+                        <td class="py-4 px-6 font-bold" data-label="內容">
+                            <div>${locTag}<span>${item.name}</span></div>
+                        </td>
+                        <td class="py-4 px-6" data-label="數量">
+                            <span class="bg-slate-50 md:bg-transparent px-2 py-1 rounded-md text-slate-500">${item.qty}</span>
+                        </td>
+                        <td class="py-4 px-6 text-center" data-label="狀態">
+                            <span class="px-3 py-1 rounded-full text-[10px] font-black ${status.urgent ? 'bg-red-500 text-white animate-pulse' : 'bg-slate-100 text-slate-400'}">
                                 ${status.label}
                             </span>
                         </td>
-                        <td class="py-4 px-6" data-label="日期資訊">
-                            <div class="text-[10px] text-slate-400">放入: ${item.addedDate}</div>
-                            <div class="font-bold text-xs">期限: ${item.expiryDate}</div>
+                        <td class="py-4 px-6" data-label="日期">
+                            <div class="text-[10px] text-slate-400">${item.addedDate} 入</div>
+                            <div class="font-bold text-xs">${item.expiryDate} 止</div>
                         </td>
                         <td class="py-4 px-6 text-center">
-                            <button class="btn-action bg-red-50 text-red-500 px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-500 hover:text-white transition-all" onclick="window.removeItem('${docSnap.id}')">
-                                🗑️ 移除食材
+                            <button class="btn-action bg-red-50 text-red-500 px-3 py-2 rounded-xl text-xs font-bold active:bg-red-500 active:text-white" onclick="window.removeItem('${docSnap.id}')">
+                                移除
                             </button>
                         </td>
                     `;
@@ -238,36 +229,28 @@
             });
         }
 
-        function calculateStatus(expiryDateStr) {
+        function calculateStatus(date) {
             const today = new Date(); today.setHours(0,0,0,0);
-            const expiry = new Date(expiryDateStr);
-            const diffDays = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
-            if (diffDays < 0) return { label: '已過期', class: 'expired', urgent: true };
-            if (diffDays <= 3) return { label: `剩 ${diffDays} 天`, class: 'warning', urgent: true };
-            return { label: `剩餘 ${diffDays} 天`, class: '', urgent: false };
+            const exp = new Date(date);
+            const diff = Math.ceil((exp - today) / 86400000);
+            if (diff < 0) return { label: '已過期', class: 'expired', urgent: true };
+            if (diff <= 3) return { label: `剩 ${diff} 天`, class: 'warning', urgent: true };
+            return { label: `剩 ${diff} 天`, class: '', urgent: false };
         }
 
         document.getElementById('foodForm').onsubmit = async (e) => {
             e.preventDefault();
-            const btn = e.target.querySelector('button');
-            btn.disabled = true;
-            btn.innerText = "儲存中...";
-            try {
-                await addDoc(collection(db, "fridgeInventory"), {
-                    name: document.getElementById('foodName').value,
-                    qty: document.getElementById('foodQty').value,
-                    location: document.getElementById('foodLocation').value,
-                    addedDate: document.getElementById('addedDate').value,
-                    expiryDate: document.getElementById('expiryDate').value,
-                    userId: auth.currentUser.uid,
-                    createdAt: serverTimestamp()
-                });
-                e.target.reset();
-                document.getElementById('addedDate').valueAsDate = new Date();
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "加入清單";
-            }
+            await addDoc(collection(db, "fridgeInventory"), {
+                name: document.getElementById('foodName').value,
+                qty: document.getElementById('foodQty').value,
+                location: document.getElementById('foodLocation').value,
+                addedDate: document.getElementById('addedDate').value,
+                expiryDate: document.getElementById('expiryDate').value,
+                userId: auth.currentUser.uid,
+                createdAt: serverTimestamp()
+            });
+            e.target.reset();
+            document.getElementById('addedDate').valueAsDate = new Date();
         };
 
         window.filterBy = (loc) => {
@@ -278,7 +261,7 @@
         };
 
         window.sortBy = (val) => { currentSort = val; refreshData(); };
-        window.removeItem = async (id) => { if (confirm('要移除這項食材嗎？')) await deleteDoc(doc(db, "fridgeInventory", id)); };
+        window.removeItem = async (id) => { if (confirm('移除？')) await deleteDoc(doc(db, "fridgeInventory", id)); };
         document.getElementById('btnLogin').onclick = () => signInWithPopup(auth, provider);
         document.getElementById('btnLogout').onclick = () => signOut(auth);
         document.getElementById('addedDate').valueAsDate = new Date();
